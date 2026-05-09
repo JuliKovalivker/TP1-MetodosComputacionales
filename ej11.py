@@ -44,7 +44,7 @@ def bezier_iterada(P0, P1, P2, t):
     B  = (1-t)*Q0 + t*Q1
     return B
 
-ts_comp = np.linspace(0, 1, 10)
+ts_comp = np.linspace(0, 1, 11)
 print("\n")
 print("Comparación de ambos métodos para 10 valores de t:")
 for t in ts_comp:
