@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle, Polygon
+from matplotlib.path import Path
 
-A = (0, 0)
-D = (10, 5)
+A = np.array([0, 0], dtype=float)
+D = np.array([10, 5], dtype=float)
 
 def bezier_cubica(P0, P1, P2, P3, ts):
     return np.array([
@@ -44,7 +45,7 @@ def configurar_obstaculos(ax):
     ax.text(2.15, 5.3, 'Pozo', **text)
     ax.text(8.85, 5.75, 'Arbustos', **text)
 
-def graficar_curva(ax, P1, P2, color, label):
+def graficar_curva(ax, P1, P2, color, label, pattern):
     P0 = np.array(A)
     P3 = np.array(D)
     P1 = np.array(P1)
@@ -52,7 +53,7 @@ def graficar_curva(ax, P1, P2, color, label):
     ts = np.linspace(0, 1, 100)
     curva = bezier_cubica(P0, P1, P2, P3, ts)
     longitud = longitud_curva(curva)
-    ax.plot(curva[:,0], curva[:,1], color=color, linewidth=2, label=f'{label} (long≈{longitud:.2f})')
+    ax.plot(curva[:,0], curva[:,1], pattern, color=color, linewidth=2, label=f'{label} (long≈{longitud:.4f})')
     pts = np.array([P0, P1, P2, P3])
     ax.plot(pts[:,0], pts[:,1], '--', color=color, alpha=0.3, linewidth=1)
     for p in [P1, P2]:
@@ -63,18 +64,37 @@ configurar_mapa(ax)
 configurar_obstaculos(ax)
 
 
+pozo_path     = Path([(1.5,5.5),(2.2,5.8),(2.8,5.5),(2.5,4.8),(1.8,4.8),(1.5,5.5)])
+arbustos_path = Path([(8.5,6.2),(9.5,6.0),(9.2,5.3),(8.2,5.5),(8.5,6.2)])
 
+def choca(curva):
+    # Roca: círculo centro (4,3) radio 1.2
+    # un punto está adentro si su distancia al centro es menor al radio
+    dists_roca = np.sqrt((curva[:,0]-4)**2 + (curva[:,1]-3)**2)
+    if np.any(dists_roca < 1.2):
+        return True
+    
+    # Casa: rectángulo x∈[6,8], y∈[1,4]
+    # un punto está adentro si cumple ambas condiciones a la vez
+    if np.any((curva[:,0]>=6) & (curva[:,0]<=8) & (curva[:,1]>=1) & (curva[:,1]<=4)):
+        return True
+    
+    # Pozo y Arbustos: polígonos irregulares
+    # matplotlib tiene contains_points que hace el trabajo por nosotros
+    if np.any(pozo_path.contains_points(curva)):
+        return True
+    
+    if np.any(arbustos_path.contains_points(curva)):
+        return True
+    
+    return False
 
-# mejor_longitud = np.inf
-# mejor_P1 = None
-# mejor_P2 = None
-#
-# def choca(curva):
-#     # podriamos hacer una matrzi con todos los puntos de los obstaculos y vemos si la curva tiene esos puntos
-#     pass
-#
+mejor_longitud = np.inf
+mejor_P1 = None
+mejor_P2 = None
+
 # for p1x in np.arange(0, 10, 1):        
-#     for p1y in np.arange(4, 8, 1):     
+#     for p1y in np.arange(0, 10, 1):     
 #         for p2x in np.arange(0, 10, 1):
 #             for p2y in np.arange(4, 8, 1): 
 #                 P1 = np.array([p1x, p1y])
@@ -86,15 +106,53 @@ configurar_obstaculos(ax)
 #                         mejor_longitud = long
 #                         mejor_P1 = P1.copy()
 #                         mejor_P2 = P2.copy()
+# [5,6] [2,4]
+# for p1x in np.arange(4, 6, 0.1):        
+#     for p1y in np.arange(5, 7, 0.1):     
+#         for p2x in np.arange(1, 3, 0.1):
+#             for p2y in np.arange(3, 5, 0.1): 
+#                 P1 = np.array([p1x, p1y])
+#                 P2 = np.array([p2x, p2y])
+#                 curva = bezier_cubica(A, P1, P2, D, np.linspace(0, 1, 100))
+#                 if not choca(curva):          # si no choca con nada ??????????????????????????
+#                     long = longitud_curva(curva)
+#                     if long < mejor_longitud:
+#                         mejor_longitud = long
+#                         mejor_P1 = P1.copy()
+#                         mejor_P2 = P2.copy()
+#[5.3, 6.3] [1.1, 3.1]
+# for p1x in np.arange(5.2, 5.4, 0.01):        
+#     for p1y in np.arange(6.2, 6.4, 0.01):     
+#         for p2x in np.arange(1, 1.2, 0.01):
+#             for p2y in np.arange(3, 3.2, 0.01): 
+#                 P1 = np.array([p1x, p1y])
+#                 P2 = np.array([p2x, p2y])
+#                 curva = bezier_cubica(A, P1, P2, D, np.linspace(0, 1, 100))
+#                 if not choca(curva):          # si no choca con nada ??????????????????????????
+#                     long = longitud_curva(curva)
+#                     if long < mejor_longitud:
+#                         mejor_longitud = long
+#                         mejor_P1 = P1.copy()
+#                         mejor_P2 = P2.copy()
+
+#[5.29, 6.2] [1, 3.16]
+
+graficar_curva(ax, P1=(0, 0), P2=(10, 5), color='lightgray',   label='camino ideal', pattern='--')
 
 
+graficar_curva(ax, P1=(5, 7), P2=(1, 3), color='lightgray',   label='a mano', pattern='--')
 
-graficar_curva(ax, P1=(0, 0), P2=(10, 5), color='gray',   label='camino ideal')
-# graficar_curva(ax, P1=(5.4, 6.451), P2=(1.0, 3.051), color='red',   label='camino dudoso')
-graficar_curva(ax, P1=(5.4, 6.4), P2=(1.0, 3.0), color='blue',   label='camino cool')
+
+# graficar_curva(ax, P1=(5.4, 6.4), P2=(1.0, 3.0), color='blue',   label='camino cool', pattern='-')
 # graficar_curva(ax, P1=mejor_P1, P2=mejor_P2, color='green',   label='camino cool')
+
+graficar_curva(ax, P1=(5, 6), P2=(2, 4), color='lightblue',   label='1era iteración', pattern='--')
+graficar_curva(ax, P1=(5.3, 6.3), P2=(1.1, 3.1), color='deepskyblue',   label='2nda iteración', pattern='-')
+graficar_curva(ax, P1=(5.29, 6.2), P2=(1, 3.16), color='blue',   label='3era iteración', pattern='-')
 
 
 ax.legend(loc='upper left', fontsize=9)
 plt.tight_layout()
+print(mejor_P1, mejor_P2)
+fig.savefig('mapa.png', dpi=150, bbox_inches='tight')
 plt.show()
