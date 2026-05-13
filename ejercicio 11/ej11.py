@@ -11,8 +11,8 @@ def bezier_explicita(P0, P1, P2, t):
 
 
 ### b) ###
-ts_curva = np.linspace(0, 1, 100)
-curva = np.array([bezier_explicita(P0, P1, P2, t) for t in ts_curva])
+ts_curva = np.linspace(0, 1, 100)                                     # 100 valores de t
+curva = np.array([bezier_explicita(P0, P1, P2, t) for t in ts_curva]) # armo la curva generando la imagen de cada t
 
 
 ### c) ###

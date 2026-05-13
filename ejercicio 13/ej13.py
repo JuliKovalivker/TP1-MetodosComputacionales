@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-### a) ###
 np.random.seed(0)
 
+### a) ###
 def bezier_cubica(P0, P1, P2, P3, ts):
     return np.array([
         (1-t)**3 * P0 + 3*(1-t)**2*t * P1 + 3*(1-t)*t**2 * P2 + t**3 * P3
@@ -33,11 +33,10 @@ print(f"B₂(t) -> P₀ = {P0}   P₁ = {P1}   P₂ = {P2}   P₃ = {P3}\n")
 # T @ P0 = Q3  y  T @ P3 = Q0
 # planteamos T @ [P0 | P3] = [Q3 | Q0]
 # => T = [Q3 | Q0] @ inv([P0 | P3])
-
 A = np.column_stack([P0, P3])
 B = np.column_stack([Q3, Q0])
  
-while abs(np.linalg.det(A)) <= 1e-10:
+while abs(np.linalg.det(A)) <= 1e-10: # Por si hay algun error de redondeo
     print("P0 y P3 son LD, regenerando puntos...")
     puntos_B1 = generar_puntos()
     P0, P1, P2, P3 = puntos_B1
@@ -83,7 +82,6 @@ graficar_bezier(axes[0], B1, [P0,P1,P2,P3], 'Curva B1(t)', '#3B8BD4', '#E85D24')
 graficar_bezier(axes[1], B2, [Q0,Q1,Q2,Q3], 'Curva B2(t)', '#2CA470', '#E85D24')
 
 # Gráfico T(B1) y B2 juntas
-
 ax = axes[2]
 pts_TB1 = np.array([TP0, TP1, TP2, TP3])
 pts_B2  = np.array([Q0, Q1, Q2, Q3])

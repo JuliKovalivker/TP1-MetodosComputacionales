@@ -1,3 +1,6 @@
+
+### Usamos el codigo subido al campus como base pero lo modificamos para generar nuestra curva ###
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle, Polygon
@@ -12,6 +15,8 @@ def bezier_cubica(P0, P1, P2, P3, ts):
         for t in ts
     ])
 
+# Calculamos la longitus de la curva como la suma de las diferencas entre puntos, 
+# pues la curva la generamos solo con 100 valores de t
 def longitud_curva(curva):
     diffs = np.diff(curva, axis=0)
     return np.sum(np.sqrt((diffs**2).sum(axis=1)))
@@ -63,50 +68,54 @@ fig, ax = plt.subplots(figsize=(15, 9))
 configurar_mapa(ax)
 configurar_obstaculos(ax)
 
-
+# La curva choca con un obstaculo si comparte algun punto de ellos
+# Nos guardamos los puntos de los posibles obstaculos con los que la curva podria chocar
 pozo_path     = Path([(1.5,5.5),(2.2,5.8),(2.8,5.5),(2.5,4.8),(1.8,4.8),(1.5,5.5)])
 arbustos_path = Path([(8.5,6.2),(9.5,6.0),(9.2,5.3),(8.2,5.5),(8.5,6.2)])
-
 def choca(curva):
     # Roca: círculo centro (4,3) radio 1.2
-    # un punto está adentro si su distancia al centro es menor al radio
+    # Choca si la distancia al centro es menor al radio
     dists_roca = np.sqrt((curva[:,0]-4)**2 + (curva[:,1]-3)**2)
     if np.any(dists_roca < 1.2):
         return True
     
     # Casa: rectángulo x∈[6,8], y∈[1,4]
-    # un punto está adentro si cumple ambas condiciones a la vez
+    # Choca si pertenece a ambos
     if np.any((curva[:,0]>=6) & (curva[:,0]<=8) & (curva[:,1]>=1) & (curva[:,1]<=4)):
         return True
     
     # Pozo y Arbustos: polígonos irregulares
-    # matplotlib tiene contains_points que hace el trabajo por nosotros
+    # Generamos los puntos de cada poligono y vemos si tienen algun punto en comun
     if np.any(pozo_path.contains_points(curva)):
         return True
-    
     if np.any(arbustos_path.contains_points(curva)):
         return True
     
     return False
 
+# Variables globales para FB
 mejor_longitud = np.inf
 mejor_P1 = None
 mejor_P2 = None
 
+### Primera iteracion de FB, a ojo elejimos los rangos y obtenemos los mejores P1 y P2
+### permitiendo solo numeros enteros para cada posicion
 # for p1x in np.arange(0, 10, 1):        
 #     for p1y in np.arange(0, 10, 1):     
 #         for p2x in np.arange(0, 10, 1):
-#             for p2y in np.arange(4, 8, 1): 
+#             for p2y in np.arange(0, 10, 1): 
 #                 P1 = np.array([p1x, p1y])
 #                 P2 = np.array([p2x, p2y])
 #                 curva = bezier_cubica(A, P1, P2, D, np.linspace(0, 1, 100))
-#                 if not choca(curva):          # si no choca con nada ??????????????????????????
+#                 if not choca(curva):
 #                     long = longitud_curva(curva)
 #                     if long < mejor_longitud:
 #                         mejor_longitud = long
 #                         mejor_P1 = P1.copy()
 #                         mejor_P2 = P2.copy()
-# [5,6] [2,4]
+# El algortimo devuelve => [5,6] [2,4]
+
+### Repetimos pero ahora buscamos el primer decimal de los puntos optimos
 # for p1x in np.arange(4, 6, 0.1):        
 #     for p1y in np.arange(5, 7, 0.1):     
 #         for p2x in np.arange(1, 3, 0.1):
@@ -114,13 +123,15 @@ mejor_P2 = None
 #                 P1 = np.array([p1x, p1y])
 #                 P2 = np.array([p2x, p2y])
 #                 curva = bezier_cubica(A, P1, P2, D, np.linspace(0, 1, 100))
-#                 if not choca(curva):          # si no choca con nada ??????????????????????????
+#                 if not choca(curva):  
 #                     long = longitud_curva(curva)
 #                     if long < mejor_longitud:
 #                         mejor_longitud = long
 #                         mejor_P1 = P1.copy()
 #                         mejor_P2 = P2.copy()
-#[5.3, 6.3] [1.1, 3.1]
+# El algortimo devuelve => [5.3, 6.3] [1.1, 3.1]
+
+## Repetimos una ultima vez para encontrar un segundo decimal
 # for p1x in np.arange(5.2, 5.4, 0.01):        
 #     for p1y in np.arange(6.2, 6.4, 0.01):     
 #         for p2x in np.arange(1, 1.2, 0.01):
@@ -128,31 +139,22 @@ mejor_P2 = None
 #                 P1 = np.array([p1x, p1y])
 #                 P2 = np.array([p2x, p2y])
 #                 curva = bezier_cubica(A, P1, P2, D, np.linspace(0, 1, 100))
-#                 if not choca(curva):          # si no choca con nada ??????????????????????????
+#                 if not choca(curva):      
 #                     long = longitud_curva(curva)
 #                     if long < mejor_longitud:
 #                         mejor_longitud = long
 #                         mejor_P1 = P1.copy()
 #                         mejor_P2 = P2.copy()
+# El algortimo devuelve => [5.29, 6.2] [1, 3.16]
 
-#[5.29, 6.2] [1, 3.16]
-
-graficar_curva(ax, P1=(0, 0), P2=(10, 5), color='lightgray',   label='camino ideal', pattern='--')
-
-
-graficar_curva(ax, P1=(5, 7), P2=(1, 3), color='lightgray',   label='a mano', pattern='--')
-
-
-# graficar_curva(ax, P1=(5.4, 6.4), P2=(1.0, 3.0), color='blue',   label='camino cool', pattern='-')
-# graficar_curva(ax, P1=mejor_P1, P2=mejor_P2, color='green',   label='camino cool')
-
-graficar_curva(ax, P1=(5, 6), P2=(2, 4), color='lightblue',   label='1era iteración', pattern='--')
-graficar_curva(ax, P1=(5.3, 6.3), P2=(1.1, 3.1), color='deepskyblue',   label='2nda iteración', pattern='-')
-graficar_curva(ax, P1=(5.29, 6.2), P2=(1, 3.16), color='blue',   label='3era iteración', pattern='-')
-
+graficar_curva(ax, P1=(0, 0), P2=(10, 5), color='lightgray',   label='camino ideal', pattern='--')            # Curva ideal: recta entre A y D
+graficar_curva(ax, P1=(5, 7), P2=(1, 3), color='lightgray',   label='a mano', pattern='--')                   # Curva encontrada a ojo para guiarnos
+graficar_curva(ax, P1=(5, 6), P2=(2, 4), color='lightblue',   label='1era iteración', pattern='--')           # Curva generada con 1 iteracion de FB
+graficar_curva(ax, P1=(5.3, 6.3), P2=(1.1, 3.1), color='deepskyblue',   label='2nda iteración', pattern='-')  # Curva generada con 2 iteraciones de FB
+graficar_curva(ax, P1=(5.29, 6.2), P2=(1, 3.16), color='blue',   label='3era iteración', pattern='-')         # Curva generada con 3 iteraciones de FB
 
 ax.legend(loc='upper left', fontsize=9)
 plt.tight_layout()
-print(mejor_P1, mejor_P2)
+# print(mejor_P1, mejor_P2)
 fig.savefig('mapa.png', dpi=150, bbox_inches='tight')
 plt.show()
