@@ -27,7 +27,7 @@ B2 = bezier_cubica(Q0, Q1, Q2, Q3, ts)
 print("\n")
 print("Las curvas de Bézier alteatorias poseen los siguienten puntos de control:")
 print(f"B₁(t) -> P₀ = {P0}   P₁ = {P1}   P₂ = {P2}   P₃ = {P3}")
-print(f"B₂(t) -> P₀ = {P0}   P₁ = {P1}   P₂ = {P2}   P₃ = {P3}\n")
+print(f"B₂(t) -> Q₀ = {Q0}   Q₁ = {Q1}   Q₂ = {Q2}   Q₃ = {Q3}\n")
 
 ### c) ###
 # T @ P0 = Q3  y  T @ P3 = Q0
